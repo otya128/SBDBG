@@ -1,7 +1,9 @@
 '===============================
 '      SmileBASIC Debugger      
 '===============================
-'SmileBASIC Debugger ver 1.1.5
+'SmileBASIC Debugger ver 1.1.6
+'1.1.6 2019/11/08
+' VM_TYPE$を間違えていた致命的な問題を修正
 '1.1.5 2019/11/07
 ' スロットを二個追加
 ' 論理シフトとローテートを実装
@@ -90,7 +92,7 @@ VAR KEYBOARD_LAYOUT$'="US"
 
 
 'R:高速、ただしスロットを追加で一つ使い大きなプログラムのステップ実行がとても遅い
-VAR VM_TYPE$="S"'S/R
+VAR VM_TYPE$="R"'S/R
 
 'compiler options
 'Pause/Breakキーで中断出来るように
@@ -104,7 +106,7 @@ VAR RGEN_INTERRUPT_BUTTON_CONST$="#B"
 VAR RGEN_FAST_LARGE=#FALSE
 
 
-CONST #VERSION$="1.1.5.189"
+CONST #VERSION$="1.1.6.190"
 
 VAR TRACE_COMPILE=#TRUE
 'サブプログラムを使わず実行する(#TRUE)

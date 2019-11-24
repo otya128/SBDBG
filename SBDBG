@@ -1,7 +1,10 @@
 '===============================
 '      SmileBASIC Debugger      
 '===============================
-'SmileBASIC Debugger ver 1.0.5
+'SmileBASIC Debugger ver 1.0.6
+'1.0.6 2019/07/17
+' 接尾辞付COMMON DEFをコンパイルできるように
+' 継続行での空行の取り扱いを修正
 '1.0.5 2019/07/16
 ' 組み込み定数を評価ウィンドウで評価出来るように
 ' 16進2進リテラルの構文解析を厳密に
@@ -45,7 +48,7 @@ VAR RGEN_INTERRUPT=#TRUE
 VAR RGEN_FAST_LARGE=#FALSE
 
 
-CONST #VERSION$="1.0.5.178"
+CONST #VERSION$="1.0.6.179"
 
 VAR TRACE_COMPILE=#TRUE
 'VAR ARY=LOADV("GRP:BUG")
@@ -8669,15 +8672,19 @@ DEF LEX_NEXT_IMPL
    IF C==13 THEN BREAK
   NEXT
   GOTO @LOOP
- ELSEIF C$=="\"THEN
-  IF ASC(N$)==10||ASC(N$)==13 THEN
-   IF ASC(N$)==10 THEN
-    INC LEXER_LINE
+ ELSEIF C$=="\"&&(N$==""||ASC(N$)==10||ASC(N$)==13)THEN
+  FOR LEXER_I=LEXER_I+1 TO LAST(LEXER_IN$)
+   C$=LEXER_IN$[LEXER_I]
+   IF ASC(C$)==10||ASC(C$)==13 THEN
+    IF ASC(C$)==10 THEN
+     INC LEXER_LINE
+    ENDIF
+    LEXER_LINE_POS=LEXER_I+1
+   ELSE
+    BREAK
    ENDIF
-   LEXER_LINE_POS=LEXER_I+2
-   INC LEXER_I,2
-   GOTO @LOOP
-  ENDIF
+  NEXT
+  GOTO@LOOP
  ENDIF
  @ERR
  LEXER_TKN=#TKN_UNKNOWN
@@ -19485,7 +19492,7 @@ DEF RIR_GEN_SBCODE
     VAR MAX_SLOT=3
     IF FUNC_COMMON[FUNC]THEN
      FOR J=0TO MAX_SLOT
-      RGEN_EMIT_SBCODE "@F"+STR$(J)+FUNC_NAME$[FUNC]+":"
+      RGEN_EMIT_SBCODE RGEN_FUNC_SLOT$(J,FUNC_NAME$[FUNC])+":"
      NEXT
     ELSE
      RGEN_EMIT_SBCODE RGEN_FUNC$(FUNC_NAME$[FUNC])+":"

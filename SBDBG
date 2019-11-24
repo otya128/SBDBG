@@ -1,7 +1,9 @@
 '===============================
 '      SmileBASIC Debugger      
 '===============================
-'SmileBASIC Debugger ver 1.1.6
+'SmileBASIC Debugger ver 1.1.7
+'1.1.7 2019/11/08
+' COMMON DEFがスロット4,5から使えなかった問題を修正
 '1.1.6 2019/11/08
 ' VM_TYPE$を間違えていた致命的な問題を修正
 '1.1.5 2019/11/07
@@ -106,7 +108,7 @@ VAR RGEN_INTERRUPT_BUTTON_CONST$="#B"
 VAR RGEN_FAST_LARGE=#FALSE
 
 
-CONST #VERSION$="1.1.6.190"
+CONST #VERSION$="1.1.7.191"
 
 VAR TRACE_COMPILE=#TRUE
 'サブプログラムを使わず実行する(#TRUE)
@@ -20524,7 +20526,7 @@ DEF RIR_GEN_SBCODE
    ENDIF
    INC I,1
    IF FUNC THEN
-    VAR MAX_SLOT=3
+    VAR MAX_SLOT=#MAX_SLOT-1
     IF FUNC_COMMON[FUNC]THEN
      FOR J=0TO MAX_SLOT
       RGEN_EMIT_SBCODE RGEN_FUNC_SLOT$(J,FUNC_NAME$[FUNC])+":"

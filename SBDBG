@@ -1,12 +1,14 @@
 '===============================
 '      SmileBASIC Debugger      
 '===============================
-'SmileBASIC Debugger ver 1.2.4
+'SmileBASIC Debugger ver 1.2.5
+'1.2.5 2020/11/20
+' LF,CRや"を含む文字列定数に*演算子を使うと結果がおかしくなる問題を修正
 '1.2.4 2020/11/14
 ' OTHERWISEの変な挙動を実装
-' 空のCASEを許容しないように修正
-' ENDLOOP,WENDがLOOP,WHILEが他のブロックの中にあった場合CONTINUEとして扱うように修正
-' CONTINUEがわり代わりのNEXTでmkII互換構文で式を受け付けるように修正
+' WHENの無い空のCASEを許容しないように修正
+' ENDLOOP,WENDがLOOP,WHILEより内側のブロックの中にあった場合CONTINUEとして扱うように修正
+' CONTINUE代わりのNEXTでmkII互換構文で式を受け付けるように修正
 ' ループ外のCONITINUE,BREAKなどを弾くように修正
 '1.2.3 2020/08/24
 ' 浮動小数点の非正規化数などが扱えなかった問題を修正
@@ -134,7 +136,7 @@ VAR RGEN_INTERRUPT_BUTTON_CONST$="#B"
 VAR RGEN_FAST_LARGE=#FALSE
 
 
-CONST #VERSION$="1.2.4.198"
+CONST #VERSION$="1.2.5.199"
 CONST #VERSION_DATE$="2020.11"
 
 VAR TRACE_COMPILE=#TRUE
@@ -20104,21 +20106,67 @@ DEF RGEN_GEN_LOAD_ALL_REGS
 END
 DEF RIR_DATA_ESCAPE$ D$ OUT R$
  R$=""
- PUSH R$,CHR$(34)
+ IF INSTR(D$,CHR$(34))==-1&&INSTR(D$,CHR$(10))==-1&&INSTR(D$,CHR$(13))==-1THEN
+  PUSH R$,CHR$(34)
+  PUSH R$,D$
+  PUSH R$,CHR$(34)
+  RETURN R$
+ ENDIF
+ IF LEN(D$)!=1 THEN
+  PUSH R$,"("
+ ENDIF
+ VAR CCNT=0
  VAR I,L=LAST(D$)
+ VAR ESCAPED=#FALSE
  FOR I=0TO L
   VAR C$=D$[I]
   IF ASC(C$)==34 THEN
-   PUSH R$,CHR$(34)+"+CHR$(34)+"+CHR$(34)
+   IF CCNT!=0 THEN
+    PUSH R$,CHR$(34)
+    CCNT=0
+   ENDIF
+   IF I!=0 THEN
+    PUSH R$,"+CHR$(34)"
+   ELSE
+    PUSH R$,"CHR$(34)"
+   ENDIF
   ELSEIF ASC(C$)==10 THEN
-   PUSH R$,CHR$(34)+"+CHR$(10)+"+CHR$(34)
+   IF CCNT!=0 THEN
+    PUSH R$,CHR$(34)
+    CCNT=0
+   ENDIF
+   IF I!=0 THEN
+    PUSH R$,"+CHR$(10)"
+   ELSE
+    PUSH R$,"CHR$(10)"
+   ENDIF
   ELSEIF ASC(C$)==13 THEN
-   PUSH R$,CHR$(34)+"+CHR$(13)+"+CHR$(34)
+   IF CCNT!=0 THEN
+    PUSH R$,CHR$(34)
+    CCNT=0
+   ENDIF
+   IF I!=0 THEN
+    PUSH R$,"+CHR$(13)"
+   ELSE
+    PUSH R$,"CHR$(13)"
+   ENDIF
   ELSE
+   IF CCNT==0 THEN
+    IF I!=0 THEN
+     PUSH R$,"+"
+    ENDIF
+    PUSH R$,CHR$(34)
+   ENDIF
+   INC CCNT
    PUSH R$,C$
   ENDIF
  NEXT
- PUSH R$,CHR$(34)
+ IF CCNT!=0 THEN
+  PUSH R$,CHR$(34)
+ ENDIF
+ IF LEN(D$)!=1 THEN
+  PUSH R$,")"
+ ENDIF
 END
 DEF RGEN_INIT_LOCAL_VAR NODE
  IF !NODE THEN RETURN
